@@ -1,0 +1,26 @@
+{
+  "name": "kipu-bank",
+  "version": "1.0.0",
+  "description": "A secure ETH deposit and withdrawal system built with Solidity",
+  "main": "index.js",
+  "scripts": {
+    "test": "hardhat test",
+    "compile": "hardhat compile",
+    "deploy": "hardhat run scripts/deploy.js",
+    "deploy:localhost": "hardhat run scripts/deploy.js --network localhost"
+  },
+  "keywords": [
+    "ethereum",
+    "solidity",
+    "smart-contract",
+    "banking",
+    "web3"
+  ],
+  "author": "Henry Web3 Module 2",
+  "license": "MIT",
+  "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox": "^6.1.0",
+    "hardhat": "^2.26.3",
+    "solc": "^0.8.20"
+  }
+}
