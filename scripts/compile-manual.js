@@ -22,14 +22,22 @@ const input = {
     },
     outputSelection: {
       '*': {
-        '*': ['*']
+        '*': ['abi', 'evm.bytecode', 'evm.deployedBytecode', 'evm.methodIdentifiers'],
+        '': ['ast']
       }
     }
   }
 };
 
 console.log('Compiling contract with solc...');
-const output = JSON.parse(solc.compile(JSON.stringify(input)));
+
+let output;
+try {
+  output = JSON.parse(solc.compile(JSON.stringify(input)));
+} catch (error) {
+  console.error('Failed to compile contract:', error.message);
+  process.exit(1);
+}
 
 // Check for errors
 if (output.errors) {
@@ -44,13 +52,29 @@ if (output.errors) {
 
 // Create artifacts directory
 const artifactsDir = path.resolve(__dirname, '../artifacts/contracts/KipuBank.sol');
+const buildInfoDir = path.resolve(__dirname, '../artifacts/build-info');
 const cacheDir = path.resolve(__dirname, '../cache');
 
 fs.mkdirSync(artifactsDir, { recursive: true });
+fs.mkdirSync(buildInfoDir, { recursive: true });
 fs.mkdirSync(cacheDir, { recursive: true });
 
 // Get contract output
 const contract = output.contracts['KipuBank.sol'].KipuBank;
+
+// Create build info
+const buildInfoId = 'manual-build-' + Date.now();
+const buildInfo = {
+  id: buildInfoId,
+  _format: 'hh-sol-build-info-1',
+  solcVersion: '0.8.20',
+  solcLongVersion: '0.8.20+commit.a1b79de6',
+  input: input,
+  output: output
+};
+
+const buildInfoPath = path.join(buildInfoDir, `${buildInfoId}.json`);
+fs.writeFileSync(buildInfoPath, JSON.stringify(buildInfo, null, 2));
 
 // Create Hardhat-compatible artifact
 const artifact = {
@@ -68,12 +92,13 @@ const artifact = {
 const artifactPath = path.join(artifactsDir, 'KipuBank.json');
 fs.writeFileSync(artifactPath, JSON.stringify(artifact, null, 2));
 
-// Write debug artifact
+// Write debug artifact with correct path
 const debugArtifactPath = path.join(artifactsDir, 'KipuBank.dbg.json');
 fs.writeFileSync(debugArtifactPath, JSON.stringify({
   _format: 'hh-sol-dbg-1',
-  buildInfo: '../../build-info/mock.json'
+  buildInfo: `../../build-info/${buildInfoId}.json`
 }, null, 2));
 
 console.log('✓ Contract compiled successfully!');
 console.log(`Artifacts saved to: ${artifactsDir}`);
+console.log(`Build info saved to: ${buildInfoPath}`);

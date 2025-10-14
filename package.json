@@ -4,10 +4,10 @@
   "description": "A secure ETH deposit and withdrawal system built with Solidity",
   "main": "index.js",
   "scripts": {
-    "test": "node scripts/compile-manual.js && hardhat test --no-compile",
+    "test": "node scripts/compile-if-needed.js && hardhat test --no-compile",
     "compile": "node scripts/compile-manual.js",
-    "deploy": "node scripts/compile-manual.js && hardhat run scripts/deploy.js --no-compile",
-    "deploy:localhost": "node scripts/compile-manual.js && hardhat run scripts/deploy.js --network localhost --no-compile"
+    "deploy": "node scripts/compile-if-needed.js && hardhat run scripts/deploy.js --no-compile",
+    "deploy:localhost": "node scripts/compile-if-needed.js && hardhat run scripts/deploy.js --network localhost --no-compile"
   },
   "keywords": [
     "ethereum",
