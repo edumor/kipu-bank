@@ -8,7 +8,7 @@ pragma solidity ^0.8.20;
  * @dev Implements basic deposit and withdrawal functionalities with security limits
  */
 contract KipuBank {
-    // ============ VARIABLES INMUTABLES Y CONSTANTES ============
+    // ============ IMMUTABLE AND CONSTANT VARIABLES ============
     
     /// @notice Maximum withdrawal limit per transaction (0.1 ETH)
     /// @dev Immutable variable set in constructor
@@ -18,7 +18,7 @@ contract KipuBank {
     /// @dev Immutable variable set in constructor
     uint256 public immutable BANK_CAP;
 
-    // ============ VARIABLES DE ALMACENAMIENTO ============
+    // ============ STORAGE VARIABLES ============
     
     /// @notice Address of the contract owner
     address public owner;
@@ -38,7 +38,7 @@ contract KipuBank {
     /// @dev address => balance in wei
     mapping(address => uint256) public balances;
 
-    // ============ EVENTOS ============
+    // ============ EVENTS ============
     
     /// @notice Emitted when a user makes a deposit
     /// @param user Address of the user making the deposit
@@ -52,7 +52,7 @@ contract KipuBank {
     /// @param newBalance New balance of the user
     event Withdrawal(address indexed user, uint256 amount, uint256 newBalance);
 
-    // ============ ERRORES PERSONALIZADOS ============
+    // ============ CUSTOM ERRORS ============
     
     /// @notice Error when trying to deposit more than the bank limit
     error BankCapExceeded(uint256 attemptedAmount, uint256 availableSpace);
@@ -75,7 +75,7 @@ contract KipuBank {
     /// @notice Error when ETH transfer fails
     error TransferFailed();
 
-    // ============ MODIFICADORES ============
+    // ============ MODIFIERS ============
     
     /// @notice Modifier that verifies only the owner can execute the function
     modifier onlyOwner() {
@@ -96,7 +96,7 @@ contract KipuBank {
         owner = msg.sender;
     }
 
-    // ============ FUNCIONES EXTERNAS ============
+    // ============ EXTERNAL FUNCTIONS ============
     
     /// @notice External payable function to deposit ETH into the bank
     /// @dev Verifies that the deposit does not exceed the bank limit
@@ -181,7 +181,7 @@ contract KipuBank {
         );
     }
 
-    // ============ FUNCIONES PRIVADAS ============
+    // ============ PRIVATE FUNCTIONS ============
     
     /// @notice Private function to perform safe ETH transfers
     /// @param to Destination address
@@ -194,7 +194,7 @@ contract KipuBank {
         }
     }
 
-    // ============ FUNCIONES DE EMERGENCIA (SOLO OWNER) ============
+    // ============ EMERGENCY FUNCTIONS (OWNER ONLY) ============
     
     /// @notice Emergency function for the owner to withdraw funds if necessary
     /// @dev Can only be called by the contract owner
