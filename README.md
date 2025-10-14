@@ -25,31 +25,31 @@ The KipuBank smart contract provides the following functionality:
 - **Access Control**: Owner-only emergency functions with proper modifiers
 - **Safe Transfers**: Uses low-level call for secure ETH transfers
 
-## 🏗️ Arquitectura del Contrato
+## Contract Architecture
 
-### Componentes Principales
+### Main Components
 
-#### Variables Inmutables
-- `WITHDRAWAL_LIMIT`: Límite máximo de retiro por transacción
-- `BANK_CAP`: Límite total de depósitos que puede manejar el banco
+#### Immutable Variables
+- `WITHDRAWAL_LIMIT`: Maximum withdrawal limit per transaction
+- `BANK_CAP`: Total deposit limit that the bank can handle
 
-#### Variables de Estado
-- `owner`: Propietario del contrato
-- `totalDeposited`: Total de ETH depositado
-- `totalDeposits`: Contador de depósitos realizados
-- `totalWithdrawals`: Contador de retiros realizados
-- `balances`: Mapping de direcciones a sus balances
+#### State Variables
+- `owner`: Contract owner address
+- `totalDeposited`: Total ETH deposited in the bank
+- `totalDeposits`: Counter of deposits made
+- `totalWithdrawals`: Counter of withdrawals made
+- `balances`: Mapping of addresses to their balances
 
-#### Eventos
-- `Deposit`: Emitido cuando se realiza un depósito
-- `Withdrawal`: Emitido cuando se realiza un retiro exitoso
+#### Events
+- `Deposit`: Emitted when a deposit is made
+- `Withdrawal`: Emitted when a successful withdrawal is made
 
-#### Errores Personalizados
-- `BankCapExceeded`: Cuando se excede el límite del banco
-- `WithdrawalLimitExceeded`: Cuando se excede el límite de retiro
-- `InsufficientBalance`: Cuando no hay suficiente balance
-- `ZeroDeposit/ZeroWithdrawal`: Para transacciones de valor cero
-- `OnlyOwner`: Para funciones restringidas al propietario
+#### Custom Errors
+- `BankCapExceeded`: When the bank limit is exceeded
+- `WithdrawalLimitExceeded`: When the withdrawal limit is exceeded
+- `InsufficientBalance`: When there is insufficient balance
+- `ZeroDeposit/ZeroWithdrawal`: For zero-value transactions
+- `OnlyOwner`: For owner-restricted functions
 
 ## Deployment Instructions
 
@@ -203,17 +203,41 @@ Once deployed, you can interact with the KipuBank contract through various metho
    - Click the blue button (view function)
    - Results display immediately (no transaction needed)
 
-#### Method 2: Using Block Explorer (Etherscan)
+#### Method 2: Using Etherscan Block Explorer (Recommended for Testing)
 
-1. Navigate to your verified contract on the block explorer
-2. Go to "Contract" tab
-3. **Write Contract**:
-   - Connect your wallet
-   - Use the write functions interface
-   - Submit transactions
-4. **Read Contract**:
-   - No wallet connection needed
-   - Query contract state directly
+Once your contract is deployed and verified on Etherscan, you can test it directly through the web interface:
+
+1. **Access Your Contract on Etherscan**:
+   - Go to [Sepolia Etherscan](https://sepolia.etherscan.io/) (or your chosen testnet)
+   - Navigate to your contract address
+   - Click on the "Contract" tab
+
+2. **Testing Write Functions**:
+   - Click on "Write Contract" tab
+   - Connect your MetaMask wallet by clicking "Connect to Web3"
+   - **Test deposit()**: 
+     - Scroll to "deposit" function
+     - Enter amount in ETH (e.g., 0.1) in the "payableAmount" field
+     - Click "Write" and confirm in MetaMask
+   - **Test withdraw()**:
+     - Scroll to "withdraw" function  
+     - Enter amount in wei (e.g., 50000000000000000 for 0.05 ETH)
+     - Click "Write" and confirm in MetaMask
+
+3. **Testing Read Functions**:
+   - Click on "Read Contract" tab (no wallet connection needed)
+   - **Test getBalance()**:
+     - Enter your wallet address
+     - Click "Query" to see your balance
+   - **Test getBankInfo()**:
+     - Click "Query" to see bank statistics
+   - **View public variables**:
+     - Check WITHDRAWAL_LIMIT, BANK_CAP, totalDeposited, etc.
+
+4. **Verify Transactions**:
+   - After each write operation, check the transaction hash
+   - View transaction details to see events emitted
+   - Verify gas usage and transaction status
 
 #### Method 3: Direct MetaMask Interaction
 
@@ -243,43 +267,81 @@ Once deployed, you can interact with the KipuBank contract through various metho
 1. Call `getBalance(YOUR_ADDRESS)`
 2. View result instantly
 
-## 🔒 Características de Seguridad
+## Testing Your Deployed Contract
 
-### Patrones Implementados
+After deploying your contract, you can test all functionality through Etherscan:
 
-1. **Checks-Effects-Interactions**: Todas las validaciones antes de cambios de estado
-2. **Errores Personalizados**: Mayor eficiencia de gas que strings
-3. **Modificadores**: Validación reutilizable de permisos
-4. **Transferencias Seguras**: Uso de `call` en lugar de `transfer`
-5. **Variables Inmutables**: Optimización de gas y seguridad
+### Step-by-Step Testing Guide
 
-### Validaciones
+1. **Initial Setup**:
+   - Ensure your contract is deployed and verified on Etherscan
+   - Have some testnet ETH in your MetaMask wallet
+   - Navigate to your contract's Etherscan page
 
-- ✅ Verificación de balances suficientes
-- ✅ Límites de retiro por transacción
-- ✅ Límite global del banco
-- ✅ Protección contra depósitos/retiros cero
-- ✅ Funciones de emergencia solo para el owner
+2. **Test Deposit Functionality**:
+   - Go to "Write Contract" tab on Etherscan
+   - Connect your MetaMask wallet
+   - Find the `deposit` function
+   - Enter a small amount (e.g., 0.01 ETH) in the payable amount field
+   - Click "Write" and confirm the transaction
+   - Check the transaction hash for the `Deposit` event
 
-## 📊 Estructura de Datos
+3. **Verify Your Balance**:
+   - Go to "Read Contract" tab
+   - Use `getBalance` function with your wallet address
+   - Confirm your balance shows the deposited amount
+
+4. **Test Withdrawal Functionality**:
+   - Return to "Write Contract" tab
+   - Use `withdraw` function with an amount in wei (e.g., 10000000000000000 for 0.01 ETH)
+   - Confirm transaction and check for `Withdrawal` event
+
+5. **Test Bank Information**:
+   - Use `getBankInfo` function to see overall statistics
+   - Verify the counters increased after your transactions
+
+6. **Test Edge Cases**:
+   - Try depositing 0 ETH (should fail with ZeroDeposit error)
+   - Try withdrawing more than your balance (should fail)
+   - Try withdrawing more than the limit (should fail)
+
+### Security Features
+
+The KipuBank contract implements several security best practices:
+
+- **Checks-Effects-Interactions Pattern**: All validations performed before state changes
+- **Custom Errors**: Gas-efficient error handling instead of require strings
+- **Access Control Modifiers**: Reusable permission validation
+- **Safe ETH Transfers**: Uses low-level `call` instead of deprecated `transfer`
+- **Immutable Variables**: Gas optimization and enhanced security
+
+### Validation Features
+
+- ✅ Sufficient balance verification
+- ✅ Per-transaction withdrawal limits
+- ✅ Global bank deposit limits
+- ✅ Protection against zero deposits/withdrawals
+- ✅ Owner-only emergency functions
+
+## Contract Data Structure
 
 ```
-KipuBank
-├── Variables Inmutables
-│   ├── WITHDRAWAL_LIMIT (0.1 ETH por defecto)
-│   └── BANK_CAP (10 ETH por defecto)
-├── Estado
+KipuBank Contract
+├── Immutable Variables
+│   ├── WITHDRAWAL_LIMIT (default: 0.1 ETH)
+│   └── BANK_CAP (default: 10 ETH)
+├── State Variables
 │   ├── owner
 │   ├── totalDeposited
 │   ├── totalDeposits
 │   ├── totalWithdrawals
 │   └── balances (mapping)
-└── Funciones
-    ├── deposit() - Externa Payable
-    ├── withdraw() - Externa
-    ├── getBalance() - Vista
-    ├── getBankInfo() - Vista
-    └── _safeTransfer() - Privada
+└── Functions
+    ├── deposit() - External Payable
+    ├── withdraw() - External
+    ├── getBalance() - View
+    ├── getBankInfo() - View
+    └── _safeTransfer() - Private
 ```
 
 ## Deployed Contract Information
@@ -292,19 +354,6 @@ KipuBank
 *Note: Please update this section after successful deployment and verification*
 
 ## Technical Specifications
-
-### Security Features
-
-The KipuBank contract implements several security best practices:
-
-- **Checks-Effects-Interactions Pattern**: All validations performed before state changes
-- **Custom Errors**: Gas-efficient error handling instead of require strings
-- **Access Control Modifiers**: Reusable permission validation
-- **Safe ETH Transfers**: Uses low-level `call` instead of deprecated `transfer`
-- **Immutable Variables**: Gas optimization and enhanced security
-- **Single Storage Access**: Optimized to read storage variables only once per function
-
-### Contract Architecture
 
 ```
 KipuBank Contract
