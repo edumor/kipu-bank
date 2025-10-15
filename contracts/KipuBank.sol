@@ -54,33 +54,30 @@ contract KipuBank {
 
     // ============ CUSTOM ERRORS ============
     
-    /// @notice Error when trying to deposit more than the bank limit
-    error BankCapExceeded(uint256 attemptedAmount, uint256 availableSpace);
+    /// @notice Error when deposit exceeds bank limit
+    error CapExceeded(uint256 attempted, uint256 available);
     
-    /// @notice Error when trying to withdraw more than the transaction limit
-    error WithdrawalLimitExceeded(uint256 attemptedAmount, uint256 limit);
+    /// @notice Error when withdrawal exceeds transaction limit
+    error LimitExceeded(uint256 attempted, uint256 limit);
     
-    /// @notice Error when trying to withdraw more than available balance
-    error InsufficientBalance(uint256 attemptedAmount, uint256 currentBalance);
+    /// @notice Error when withdrawal exceeds user balance
+    error LowBalance(uint256 attempted, uint256 current);
     
     /// @notice Error when trying to deposit 0 ETH
     error ZeroDeposit();
     
     /// @notice Error when trying to withdraw 0 ETH
-    error ZeroWithdrawal();
-    
-    /// @notice Error when only the owner can execute the function
-    error OnlyOwner();
+    error ZeroAmount();
     
     /// @notice Error when ETH transfer fails
-    error TransferFailed();
+    error TransferFail();
 
     // ============ MODIFIERS ============
     
-    /// @notice Modifier that verifies only the owner can execute the function
-    modifier onlyOwner() {
-        if (msg.sender != owner) {
-            revert OnlyOwner();
+    /// @notice Modifier to validate that amount is greater than zero
+    modifier validAmount(uint256 amount) {
+        if (amount == 0) {
+            revert ZeroAmount();
         }
         _;
     }
@@ -109,14 +106,17 @@ contract KipuBank {
         uint256 currentTotalDeposited = totalDeposited;
         uint256 newTotalDeposited = currentTotalDeposited + msg.value;
         if (newTotalDeposited > BANK_CAP) {
-            revert BankCapExceeded(msg.value, BANK_CAP - currentTotalDeposited);
+            revert CapExceeded(msg.value, BANK_CAP - currentTotalDeposited);
         }
 
-        // Effects
-        uint256 newUserBalance = balances[msg.sender] + msg.value;
+        // Effects - Single access to state variables
+        uint256 currentUserBalance = balances[msg.sender];
+        uint256 currentTotalDeposits = totalDeposits;
+        uint256 newUserBalance = currentUserBalance + msg.value;
+        
         balances[msg.sender] = newUserBalance;
         totalDeposited = newTotalDeposited;
-        totalDeposits++;
+        totalDeposits = currentTotalDeposits + 1;
 
         // Interactions (event emission)
         emit Deposit(msg.sender, msg.value, newUserBalance);
@@ -125,26 +125,26 @@ contract KipuBank {
     /// @notice External function to withdraw ETH from the bank
     /// @param amount Amount to withdraw in wei
     /// @dev Verifies withdrawal limits and sufficient balance
-    function withdraw(uint256 amount) external {
+    function withdraw(uint256 amount) external validAmount(amount) {
         // Checks
-        if (amount == 0) {
-            revert ZeroWithdrawal();
-        }
         
         if (amount > WITHDRAWAL_LIMIT) {
-            revert WithdrawalLimitExceeded(amount, WITHDRAWAL_LIMIT);
+            revert LimitExceeded(amount, WITHDRAWAL_LIMIT);
         }
         
         uint256 currentBalance = balances[msg.sender];
         if (amount > currentBalance) {
-            revert InsufficientBalance(amount, currentBalance);
+            revert LowBalance(amount, currentBalance);
         }
 
-        // Effects
+        // Effects - Single access to state variables
         uint256 newBalance = currentBalance - amount;
+        uint256 currentTotalDeposited = totalDeposited;
+        uint256 currentTotalWithdrawals = totalWithdrawals;
+        
         balances[msg.sender] = newBalance;
-        totalDeposited -= amount;
-        totalWithdrawals++;
+        totalDeposited = currentTotalDeposited - amount;
+        totalWithdrawals = currentTotalWithdrawals + 1;
 
         // Interactions
         _safeTransfer(msg.sender, amount);
@@ -172,10 +172,15 @@ contract KipuBank {
         uint256 bankCap,
         uint256 withdrawLimit
     ) {
+        // Single access to each state variable
+        uint256 currentTotalDeposited = totalDeposited;
+        uint256 currentTotalDeposits = totalDeposits;
+        uint256 currentTotalWithdrawals = totalWithdrawals;
+        
         return (
-            totalDeposited,
-            totalDeposits,
-            totalWithdrawals,
+            currentTotalDeposited,
+            currentTotalDeposits,
+            currentTotalWithdrawals,
             BANK_CAP,
             WITHDRAWAL_LIMIT
         );
@@ -190,37 +195,8 @@ contract KipuBank {
     function _safeTransfer(address to, uint256 amount) private {
         (bool success, ) = payable(to).call{value: amount}("");
         if (!success) {
-            revert TransferFailed();
+            revert TransferFail();
         }
     }
 
-    // ============ EMERGENCY FUNCTIONS (OWNER ONLY) ============
-    
-    /// @notice Emergency function for the owner to withdraw funds if necessary
-    /// @dev Can only be called by the contract owner
-    function emergencyWithdraw() external onlyOwner {
-        uint256 contractBalance = address(this).balance;
-        _safeTransfer(owner, contractBalance);
-    }
-
-    /// @notice Function to receive ETH directly (fallback)
-    /// @dev Implements deposit logic directly to save gas
-    receive() external payable {
-        if (msg.value == 0) {
-            revert ZeroDeposit();
-        }
-        
-        uint256 currentTotalDeposited = totalDeposited;
-        uint256 newTotalDeposited = currentTotalDeposited + msg.value;
-        if (newTotalDeposited > BANK_CAP) {
-            revert BankCapExceeded(msg.value, BANK_CAP - currentTotalDeposited);
-        }
-
-        uint256 newUserBalance = balances[msg.sender] + msg.value;
-        balances[msg.sender] = newUserBalance;
-        totalDeposited = newTotalDeposited;
-        totalDeposits++;
-        
-        emit Deposit(msg.sender, msg.value, newUserBalance);
-    }
 }

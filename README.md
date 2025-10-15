@@ -2,133 +2,168 @@
 
 [![Solidity](https://img.shields.io/badge/Solidity-0.8.20-blue.svg)](https://soliditylang.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Verified](https://img.shields.io/badge/Etherscan-Verified-green.svg)](https://sepolia.etherscan.io/address/0xEA522ec9237Cb4FCe33c2E417a97a704a7924F91)
 
-## Description
+## Overview
 
-KipuBank is a secure smart contract that implements a simple banking system on the Ethereum blockchain. The contract allows users to deposit and withdraw ETH with built-in security measures and transaction limits.
+KipuBank is a secure smart contract that implements a decentralized banking system on the Ethereum blockchain. Users can deposit ETH into personal vaults and withdraw funds with built-in security measures and transaction limits.
 
-### What the Contract Does
+## Contract Information
 
-The KipuBank smart contract provides the following functionality:
+**Network**: Sepolia Testnet  
+**Contract Address**: `0xEA522ec9237Cb4FCe33c2E417a97a704a7924F91`  
+**Block Explorer**: [View on Etherscan](https://sepolia.etherscan.io/address/0xEA522ec9237Cb4FCe33c2E417a97a704a7924F91)  
+**Deployment Date**: October 14, 2025  
+**Status**: ✅ Verified and Published
 
-- **Personal ETH Vaults**: Users can deposit native ETH tokens into their individual vaults
-- **Withdrawal Limits**: Users can withdraw funds with a maximum limit per transaction (set as immutable variable)
-- **Global Deposit Cap**: The contract enforces a total deposit limit for the entire bank (set during deployment)
-- **Transaction Tracking**: The system keeps track of the total number of deposits and withdrawals
-- **Balance Management**: Users can check their individual balances and overall bank statistics
+## Features
 
-### Key Features
+- **Personal ETH Vaults**: Users can deposit native ETH into individual accounts
+- **Withdrawal Limits**: Maximum 0.1 ETH per transaction withdrawal limit
+- **Global Deposit Cap**: Total bank capacity of 10 ETH
+- **Transaction Tracking**: Monitors total deposits and withdrawals
+- **Security First**: Implements checks-effects-interactions pattern
+- **Gas Optimized**: Uses custom errors and single storage access patterns
+- **Safe Transfers**: Low-level call implementation for secure ETH transfers
 
-- **Security First**: Implements checks-effects-interactions pattern and custom errors
-- **Gas Optimized**: Uses custom errors instead of require strings and optimized storage access
-- **Event Logging**: Emits events for all deposits and successful withdrawals
-- **Access Control**: Owner-only emergency functions with proper modifiers
-- **Safe Transfers**: Uses low-level call for secure ETH transfers
+## Technical Implementation
 
-## Contract Architecture
-
-### Main Components
+### Contract Architecture
 
 #### Immutable Variables
-- `WITHDRAWAL_LIMIT`: Maximum withdrawal limit per transaction
-- `BANK_CAP`: Total deposit limit that the bank can handle
+- `WITHDRAWAL_LIMIT`: 100000000000000000 wei (0.1 ETH)
+- `BANK_CAP`: 10000000000000000000 wei (10 ETH)
 
 #### State Variables
-- `owner`: Contract owner address
-- `totalDeposited`: Total ETH deposited in the bank
-- `totalDeposits`: Counter of deposits made
-- `totalWithdrawals`: Counter of withdrawals made
-- `balances`: Mapping of addresses to their balances
+- `owner`: Contract deployer address
+- `totalDeposited`: Total ETH currently in the bank
+- `totalDeposits`: Counter of successful deposits
+- `totalWithdrawals`: Counter of successful withdrawals
+- `balances`: Mapping of user addresses to their balances
 
 #### Events
-- `Deposit`: Emitted when a deposit is made
-- `Withdrawal`: Emitted when a successful withdrawal is made
+- `Deposit(address indexed user, uint256 amount, uint256 newBalance)`
+- `Withdrawal(address indexed user, uint256 amount, uint256 newBalance)`
 
-#### Custom Errors
-- `BankCapExceeded`: When the bank limit is exceeded
-- `WithdrawalLimitExceeded`: When the withdrawal limit is exceeded
-- `InsufficientBalance`: When there is insufficient balance
-- `ZeroDeposit/ZeroWithdrawal`: For zero-value transactions
-- `OnlyOwner`: For owner-restricted functions
+#### Custom Errors (Gas Optimized)
+- `CapExceeded(uint256 attempted, uint256 available)`
+- `LimitExceeded(uint256 attempted, uint256 limit)`
+- `LowBalance(uint256 attempted, uint256 current)`
+- `ZeroDeposit()`
+- `ZeroAmount()`
+- `TransferFail()`
 
-## Deployment Instructions
+#### Security Features
+- Single storage variable access per function
+- Checks-effects-interactions pattern
+- Custom errors for gas efficiency
+- Safe ETH transfers using low-level call
+- Input validation with modifiers
 
-### Prerequisites
+## How to Test the Contract (For Instructors)
 
-Before deploying the KipuBank contract, ensure you have:
+The KipuBank contract is deployed and verified on Sepolia Testnet. You can interact with it directly through Etherscan without needing to deploy your own instance.
 
-1. **MetaMask Wallet** installed and configured
-2. **Testnet ETH** for gas fees and testing
-3. Access to **Remix IDE** or another Solidity development environment
+### Prerequisites for Testing
 
-### Recommended Testnets
+1. **MetaMask Wallet** with Sepolia Testnet configured
+2. **Sepolia ETH** for transaction fees (get from [Sepolia Faucet](https://sepoliafaucet.com/))
+3. **Web browser** with MetaMask extension installed
 
-Choose one of these testnets for deployment:
+### Testing via Etherscan (Recommended)
 
-- **Sepolia Testnet**: [Get Sepolia ETH](https://sepoliafaucet.com/)
-- **Goerli Testnet**: [Get Goerli ETH](https://goerlifaucet.com/)
-- **Mumbai Testnet (Polygon)**: [Get Mumbai MATIC](https://faucet.polygon.technology/)
+#### Step 1: Access the Verified Contract
+1. Go to [sepolia.etherscan.io/address/0xEA522ec9237Cb4FCe33c2E417a97a704a7924F91](https://sepolia.etherscan.io/address/0xEA522ec9237Cb4FCe33c2E417a97a704a7924F91)
+2. Click on the **"Contract"** tab
+3. You'll see the verified source code and contract functions
 
-### Step-by-Step Deployment
+#### Step 2: Read Contract Functions (No Gas Required)
+Click on **"Read Contract"** to view current state:
 
-#### Method 1: Using Remix IDE (Recommended)
+**Available Read Functions:**
+- `WITHDRAWAL_LIMIT` → Returns: 100000000000000000 (0.1 ETH)
+- `BANK_CAP` → Returns: 10000000000000000000 (10 ETH)
+- `owner` → Returns: Contract deployer address
+- `totalDeposited` → Returns: Current total ETH in bank
+- `totalDeposits` → Returns: Number of deposits made
+- `totalWithdrawals` → Returns: Number of withdrawals made
+- `getBalance` → Input: user address → Returns: user's balance
+- `getBankInfo` → Returns: All bank statistics at once
 
-1. **Access Remix IDE**
-   - Navigate to [remix.ethereum.org](https://remix.ethereum.org/)
-   - Create a new workspace or use the default workspace
+#### Step 3: Write Contract Functions (Requires Gas)
+Click on **"Write Contract"** and connect your MetaMask:
 
-2. **Upload Contract Code**
-   - Create a new file named `KipuBank.sol` in the `contracts` folder
-   - Copy the complete contract code from `contracts/KipuBank.sol`
-   - Paste it into the new file
+1. **Connect Wallet**
+   - Click "Connect to Web3"
+   - Select MetaMask and approve connection
+   - Ensure you're on Sepolia Testnet
 
-3. **Compile the Contract**
-   - Navigate to the "Solidity Compiler" tab (Ctrl+Shift+S)
-   - Select Solidity version `0.8.20` or `^0.8.20`
-   - Enable optimization (recommended): 200 runs
-   - Click "Compile KipuBank.sol"
-   - Verify there are no compilation errors
+2. **Test Deposit Function**
+   - Find the `deposit` function
+   - Enter amount in ETH (e.g., 0.01) in "payableAmount (ether)" field
+   - Click "Write" and confirm transaction in MetaMask
+   - Wait for confirmation
 
-4. **Configure Deployment Environment**
-   - Go to "Deploy & Run Transactions" tab (Ctrl+Shift+D)
-   - Select "Injected Provider - MetaMask" as environment
-   - Ensure MetaMask is connected to your chosen testnet
-   - Select your account address
+3. **Verify Deposit**
+   - Go back to "Read Contract"
+   - Use `getBalance` with your wallet address
+   - Check `totalDeposited` and `totalDeposits` counters
 
-5. **Set Constructor Parameters**
-   
-   Before deployment, set these constructor parameters:
-   
-   - **_withdrawalLimit**: `100000000000000000` (0.1 ETH in wei)
-   - **_bankCap**: `10000000000000000000` (10 ETH in wei)
-   
-   *Note: You can modify these values based on your requirements*
+4. **Test Withdrawal Function**
+   - In "Write Contract", find `withdraw` function
+   - Enter amount in wei (e.g., 10000000000000000 for 0.01 ETH)
+   - Click "Write" and confirm transaction
+   - Verify transaction in your MetaMask activity
 
-6. **Deploy Contract**
-   - Select "KipuBank" from the contract dropdown
-   - Enter the constructor parameters
-   - Click "Deploy" button
-   - Confirm the transaction in MetaMask
+### Test Scenarios
 
-7. **Verify Deployment**
-   - Copy the deployed contract address
-   - Visit your testnet's block explorer (e.g., Sepolia Etherscan)
-   - Search for your contract address
-   - Verify the contract source code on the explorer
+#### Scenario 1: Normal Deposit
+```
+Action: Deposit 0.01 ETH
+Expected: Success, balance increases, event emitted
+```
 
-### Contract Verification
+#### Scenario 2: Zero Deposit (Should Fail)
+```
+Action: Deposit 0 ETH
+Expected: Transaction fails with "ZeroDeposit" error
+```
 
-After deployment, verify your contract on the block explorer:
+#### Scenario 3: Exceed Bank Cap (Should Fail)
+```
+Action: Deposit more than remaining capacity
+Expected: Transaction fails with "CapExceeded" error
+```
 
-1. Go to your testnet's Etherscan (e.g., sepolia.etherscan.io)
-2. Navigate to your contract address
-3. Click "Verify and Publish" 
-4. Select "Solidity (Single file)"
-5. Choose compiler version `0.8.20`
-6. Enable optimization: Yes, 200 runs
-7. Paste your contract source code
-8. Enter constructor parameters used during deployment
-9. Complete verification
+#### Scenario 4: Normal Withdrawal
+```
+Action: Withdraw 0.01 ETH (after depositing)
+Expected: Success, balance decreases, ETH received
+```
+
+#### Scenario 5: Exceed Withdrawal Limit (Should Fail)
+```
+Action: Withdraw more than 0.1 ETH
+Expected: Transaction fails with "LimitExceeded" error
+```
+
+#### Scenario 6: Insufficient Balance (Should Fail)
+```
+Action: Withdraw more than your balance
+Expected: Transaction fails with "LowBalance" error
+```
+
+### Contract Parameters
+
+- **Withdrawal Limit**: 0.1 ETH per transaction
+- **Bank Capacity**: 10 ETH total
+- **Owner**: Contract deployer (can be checked in Read Contract)
+
+### Expected Gas Costs (Approximate)
+
+- **Deposit**: ~45,000 gas
+- **Withdrawal**: ~55,000 gas
+- **Read functions**: Free (no gas required)
 
 ## How to Interact with the Contract
 
@@ -156,9 +191,7 @@ Once deployed, you can interact with the KipuBank contract through various metho
   - Cannot exceed your current balance
 - **Example**: `withdraw(50000000000000000)` to withdraw 0.05 ETH
 
-**3. emergencyWithdraw() - Owner Only**
-- **Purpose**: Emergency function for contract owner to withdraw all funds
-- **Access**: Only contract owner can call this function
+
 
 #### Read Functions (View Functions)
 
@@ -242,8 +275,7 @@ Once your contract is deployed and verified on Etherscan, you can test it direct
 #### Method 3: Direct MetaMask Interaction
 
 1. Add contract address to MetaMask
-2. Send ETH directly to contract address (triggers `receive()` function)
-3. Use MetaMask's contract interaction features
+2. Use MetaMask's contract interaction features
 
 ### Important Notes
 
@@ -321,7 +353,6 @@ The KipuBank contract implements several security best practices:
 - ✅ Per-transaction withdrawal limits
 - ✅ Global bank deposit limits
 - ✅ Protection against zero deposits/withdrawals
-- ✅ Owner-only emergency functions
 
 ## Contract Data Structure
 
@@ -346,12 +377,15 @@ KipuBank Contract
 
 ## Deployed Contract Information
 
-**Network**: [Update after deployment]  
-**Contract Address**: `[Update with your deployed contract address]`  
-**Block Explorer**: [Update with link to verified contract]  
-**Deployment Date**: [Update after deployment]
+**Network**: Sepolia Testnet  
+**Contract Address**: `0xEA522ec9237Cb4FCe33c2E417a97a704a7924F91`  
+**Block Explorer**: [View on Etherscan](https://sepolia.etherscan.io/address/0xEA522ec9237Cb4FCe33c2E417a97a704a7924F91)  
+**Deployment Date**: October 14, 2025  
+**Status**: ✅ Verified and Published
 
-*Note: Please update this section after successful deployment and verification*
+### Contract Parameters
+- **Withdrawal Limit**: 0.1 ETH per transaction
+- **Bank Cap**: 10 ETH total deposits
 
 ## Technical Specifications
 
@@ -370,20 +404,17 @@ KipuBank Contract
 │   ├── Deposit(user, amount, newBalance)
 │   └── Withdrawal(user, amount, newBalance)
 ├── Custom Errors
-│   ├── BankCapExceeded(attemptedAmount, availableSpace)
-│   ├── WithdrawalLimitExceeded(attemptedAmount, limit)
-│   ├── InsufficientBalance(attemptedAmount, currentBalance)
-│   ├── ZeroDeposit() / ZeroWithdrawal()
-│   ├── OnlyOwner()
-│   └── TransferFailed()
+│   ├── CapExceeded(attempted, available)
+│   ├── LimitExceeded(attempted, limit)
+│   ├── LowBalance(attempted, current)
+│   ├── ZeroDeposit() / ZeroAmount()
+│   └── TransferFail()
 └── Functions
     ├── deposit() - External Payable
     ├── withdraw(uint256) - External
     ├── getBalance(address) - External View
     ├── getBankInfo() - External View
-    ├── emergencyWithdraw() - External OnlyOwner
-    ├── _safeTransfer(address, uint256) - Private
-    └── receive() - External Payable
+    └── _safeTransfer(address, uint256) - Private
 ```
 
 ### Gas Optimizations
@@ -391,7 +422,74 @@ KipuBank Contract
 - Custom errors instead of require strings (~50-100 gas saved per error)
 - Single storage variable access per function (~200 gas saved per avoided SLOAD)
 - Optimized event emission using calculated values
-- Efficient fallback function implementation
+
+## Function Reference
+
+### Write Functions (State-Changing)
+
+#### `deposit()` - Payable
+- **Purpose**: Deposit ETH into your personal vault
+- **Parameters**: None (ETH amount sent with transaction)
+- **Restrictions**: 
+  - Amount must be greater than 0
+  - Total bank deposits cannot exceed 10 ETH cap
+- **Gas Cost**: ~45,000 gas
+- **Events**: Emits `Deposit(user, amount, newBalance)`
+
+#### `withdraw(uint256 amount)` 
+- **Purpose**: Withdraw ETH from your vault
+- **Parameters**: `amount` (amount in wei to withdraw)
+- **Restrictions**:
+  - Amount must be greater than 0
+  - Cannot exceed 0.1 ETH per transaction
+  - Cannot exceed your current balance
+- **Gas Cost**: ~55,000 gas
+- **Events**: Emits `Withdrawal(user, amount, newBalance)`
+
+### Read Functions (View Functions - No Gas Required)
+
+#### `getBalance(address user)`
+- **Purpose**: Check balance of any user
+- **Parameters**: `user` (address to check)
+- **Returns**: User's balance in wei
+
+#### `getBankInfo()`
+- **Purpose**: Get comprehensive bank statistics
+- **Returns**: 
+  - `totalDep`: Total ETH in bank
+  - `totalDeps`: Number of deposits
+  - `totalWith`: Number of withdrawals  
+  - `bankCap`: Bank capacity (10 ETH)
+  - `withdrawLimit`: Withdrawal limit (0.1 ETH)
+
+#### Public Variables
+- `WITHDRAWAL_LIMIT`: 100000000000000000 (0.1 ETH)
+- `BANK_CAP`: 10000000000000000000 (10 ETH)  
+- `owner`: Contract deployer address
+- `totalDeposited`: Current ETH in bank
+- `totalDeposits`: Deposit counter
+- `totalWithdrawals`: Withdrawal counter
+- `balances(address)`: Individual user balances
+
+## Troubleshooting
+
+### Common Issues
+
+**Transaction Fails with "CapExceeded"**
+- The bank has reached its 10 ETH capacity limit
+- Try depositing a smaller amount
+
+**Transaction Fails with "LimitExceeded"**  
+- You're trying to withdraw more than 0.1 ETH in one transaction
+- Split your withdrawal into multiple smaller transactions
+
+**Transaction Fails with "LowBalance"**
+- You don't have enough balance to withdraw the requested amount
+- Check your balance using `getBalance()` function
+
+**Transaction Fails with "ZeroDeposit" or "ZeroAmount"**
+- You're trying to deposit or withdraw 0 ETH
+- Enter a valid amount greater than 0
 
 ## License
 
@@ -415,3 +513,4 @@ This smart contract is developed for educational purposes as part of a Web3 deve
 - [Ethereum Smart Contract Security Best Practices](https://consensys.github.io/smart-contract-best-practices/)
 - [Remix IDE](https://remix.ethereum.org/)
 - [MetaMask](https://metamask.io/)
+- [Sepolia Testnet Faucet](https://sepoliafaucet.com/)
