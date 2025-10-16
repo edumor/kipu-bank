@@ -52,33 +52,11 @@ contract KipuBank {
     /// @param newBalance New balance of the user
     event Withdrawal(address indexed user, uint256 amount, uint256 newBalance);
 
-    // ============ CUSTOM ERRORS ============
-    
-    /// @notice Error when deposit exceeds bank limit
-    error CapExceeded(uint256 attempted, uint256 available);
-    
-    /// @notice Error when withdrawal exceeds transaction limit
-    error LimitExceeded(uint256 attempted, uint256 limit);
-    
-    /// @notice Error when withdrawal exceeds user balance
-    error LowBalance(uint256 attempted, uint256 current);
-    
-    /// @notice Error when trying to deposit 0 ETH
-    error ZeroDeposit();
-    
-    /// @notice Error when trying to withdraw 0 ETH
-    error ZeroAmount();
-    
-    /// @notice Error when ETH transfer fails
-    error TransferFail();
-
     // ============ MODIFIERS ============
     
     /// @notice Modifier to validate that amount is greater than zero
     modifier validAmount(uint256 amount) {
-        if (amount == 0) {
-            revert ZeroAmount();
-        }
+        require(amount > 0, "Zero amount");
         _;
     }
 
@@ -99,24 +77,18 @@ contract KipuBank {
     /// @dev Verifies that the deposit does not exceed the bank limit
     function deposit() external payable {
         // Checks
-        if (msg.value == 0) {
-            revert ZeroDeposit();
-        }
+        require(msg.value > 0, "Zero deposit");
         
         uint256 currentTotalDeposited = totalDeposited;
-        uint256 newTotalDeposited = currentTotalDeposited + msg.value;
-        if (newTotalDeposited > BANK_CAP) {
-            revert CapExceeded(msg.value, BANK_CAP - currentTotalDeposited);
-        }
+        require(currentTotalDeposited + msg.value <= BANK_CAP, "Cap exceeded");
 
         // Effects - Single access to state variables
         uint256 currentUserBalance = balances[msg.sender];
-        uint256 currentTotalDeposits = totalDeposits;
         uint256 newUserBalance = currentUserBalance + msg.value;
         
         balances[msg.sender] = newUserBalance;
-        totalDeposited = newTotalDeposited;
-        totalDeposits = currentTotalDeposits + 1;
+        totalDeposited = currentTotalDeposited + msg.value;
+        totalDeposits++;
 
         // Interactions (event emission)
         emit Deposit(msg.sender, msg.value, newUserBalance);
@@ -127,24 +99,17 @@ contract KipuBank {
     /// @dev Verifies withdrawal limits and sufficient balance
     function withdraw(uint256 amount) external validAmount(amount) {
         // Checks
-        
-        if (amount > WITHDRAWAL_LIMIT) {
-            revert LimitExceeded(amount, WITHDRAWAL_LIMIT);
-        }
+        require(amount <= WITHDRAWAL_LIMIT, "Limit exceeded");
         
         uint256 currentBalance = balances[msg.sender];
-        if (amount > currentBalance) {
-            revert LowBalance(amount, currentBalance);
-        }
+        require(amount <= currentBalance, "Low balance");
 
         // Effects - Single access to state variables
         uint256 newBalance = currentBalance - amount;
-        uint256 currentTotalDeposited = totalDeposited;
-        uint256 currentTotalWithdrawals = totalWithdrawals;
         
         balances[msg.sender] = newBalance;
-        totalDeposited = currentTotalDeposited - amount;
-        totalWithdrawals = currentTotalWithdrawals + 1;
+        totalDeposited -= amount;
+        totalWithdrawals++;
 
         // Interactions
         _safeTransfer(msg.sender, amount);
@@ -172,15 +137,10 @@ contract KipuBank {
         uint256 bankCap,
         uint256 withdrawLimit
     ) {
-        // Single access to each state variable
-        uint256 currentTotalDeposited = totalDeposited;
-        uint256 currentTotalDeposits = totalDeposits;
-        uint256 currentTotalWithdrawals = totalWithdrawals;
-        
         return (
-            currentTotalDeposited,
-            currentTotalDeposits,
-            currentTotalWithdrawals,
+            totalDeposited,
+            totalDeposits,
+            totalWithdrawals,
             BANK_CAP,
             WITHDRAWAL_LIMIT
         );
@@ -191,12 +151,10 @@ contract KipuBank {
     /// @notice Private function to perform safe ETH transfers
     /// @param to Destination address
     /// @param amount Amount to transfer in wei
-    /// @dev Uses call for better security instead of transfer
+    /// @dev Uses call method as taught in Module 2
     function _safeTransfer(address to, uint256 amount) private {
         (bool success, ) = payable(to).call{value: amount}("");
-        if (!success) {
-            revert TransferFail();
-        }
+        require(success, "Transfer failed");
     }
 
 }
