@@ -422,4 +422,4 @@ This smart contract is developed for educational purposes as part of a Web3 deve
 - [Ethereum Smart Contract Security Best Practices](https://consensys.github.io/smart-contract-best-practices/)
 - [Remix IDE](https://remix.ethereum.org/)
 - [MetaMask](https://metamask.io/)
-- [Sepolia Testnet Faucet](https://sepoliafaucet.com/)
+- [Sepolia Testnet Faucet](https://sepoliafaucet.com/)Sepolia Testnet Faucet](https://sepoliafaucet.com/)
